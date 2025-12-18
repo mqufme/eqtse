@@ -1963,14 +1963,16 @@
                 // Конфигурация OAuth (замените на свои данные)
                 oauthConfig: {
                     google: {
-                        clientId: 'ВАШ_GOOGLE_CLIENT_ID.apps.googleusercontent.com',
-                        redirectUri: window.location.origin + window.location.pathname,
-                        authEndpoint: 'https://accounts.google.com/o/oauth2/v2/auth'
+                        clientId: '452500000664-lirndpc9546pftnqu89rkcflso1j5ah6.apps.googleusercontent.com',
+                        redirectUri: window.location.origin + '/auth/google/callback',
+                        authEndpoint: 'https://accounts.google.com/o/oauth2/v2/auth',
+                        scope: 'profile email'
                     },
                     telegram: {
-                        botName: 'ВашTelegramBot',
-                        redirectUri: window.location.origin + window.location.pathname,
-                        authEndpoint: 'https://oauth.telegram.org/auth'
+                        botName: '@cardifyAI_official_bot',
+                        redirectUri: window.location.origin + '/auth/telegram/callback',
+                        authEndpoint: 'https://oauth.telegram.org/auth',
+                        botToken: '8565252148:AAHWG_bXkrV3qywkBHtNx-bMGrZ7WWOS5ak'
                     }
                 }
             },
