@@ -1883,319 +1883,156 @@
     </div>
 
     <script>
-        // Основной объект состояния приложения
-        const CardifyApp = {
-            // Состояние
-            state: {
-                user: null,
-                balance: 0,
-                theme: 'dark',
-                currentPage: 'generator',
-                selectedStyle: 'minimal',
-                selectedFormat: '1:1',
-                uploadedImages: [],
-                generationHistory: [],
-                wheelSpunToday: false,
-                editorActive: false,
-                currentEditCost: 0,
-                wheelSpinning: false
-            },
-            
-            // Конфигурация
-            config: {
-                generationCost: 10,
-                editCost: 1,
-                styles: [
-                    { id: 'minimal', name: 'Минималистичный маркетплейс', icon: 'fas fa-minus', prompt: 'minimalistic product photography, clean background, soft shadows, e-commerce style' },
-                    { id: 'premium', name: 'Premium / Luxury', icon: 'fas fa-crown', prompt: 'luxury product photography, premium materials, elegant composition, gold accents' },
-                    { id: 'bright', name: 'Яркий продающий', icon: 'fas fa-fire', prompt: 'bright vibrant colors, eye-catching composition, marketing style, product focus' },
-                    { id: 'tech', name: 'Tech / Futuristic', icon: 'fas fa-microchip', prompt: 'futuristic technology product, neon lights, cyberpunk aesthetic, sci-fi' },
-                    { id: 'eco', name: 'Eco / Natural', icon: 'fas fa-leaf', prompt: 'eco-friendly product, natural materials, sustainable, green background, organic' },
-                    { id: 'dark', name: 'Dark Product', icon: 'fas fa-moon', prompt: 'dark moody product photography, dramatic lighting, black background, elegant' },
-                    { id: 'fun', name: 'Fun / Kids', icon: 'fas fa-gamepad', prompt: 'fun colorful product, playful composition, vibrant colors, toys or games' }
-                ],
-                packages: [
-                    { id: 1, amount: 100, price: 299, oldPrice: null, discount: 0 },
-                    { id: 2, amount: 300, price: 799, oldPrice: 897, discount: 10, badge: 'popular' },
-                    { id: 3, amount: 700, price: 1499, oldPrice: 1999, discount: 25 },
-                    { id: 4, amount: 1500, price: 2499, oldPrice: 4165, discount: 40, badge: 'best-value' }
-                ],
-                wheelPrizes: [
-                    { type: 'coins', value: 10, text: '+10 монет', color: '#f59e0b', description: 'Бонусные монеты для генерации карточек' },
-                    { type: 'discount', value: 10, text: 'Скидка 10%', color: '#10b981', description: 'Скидка на покупку монет в магазине' },
-                    { type: 'coins', value: 50, text: '+50 монет', color: '#f59e0b', description: 'Большой бонус монет' },
-                    { type: 'extra', value: 1, text: '+1 генерация', color: '#8b5cf6', description: 'Бесплатная генерация карточки' },
-                    { type: 'discount', value: 20, text: 'Скидка 20%', color: '#10b981', description: 'Хорошая скидка на покупку' },
-                    { type: 'coins', value: 30, text: '+30 монет', color: '#f59e0b', description: 'Средний бонус монет' },
-                    { type: 'ticket', value: 24, text: 'Золотой билет', color: '#fbbf24', description: 'Безлимитные генерации на 24 часа' },
-                    { type: 'discount', value: 15, text: 'Скидка 15%', color: '#10b981', description: 'Небольшая скидка на покупку' },
-                    { type: 'coins', value: 20, text: '+20 монет', color: '#f59e0b', description: 'Малый бонус монет' },
-                    { type: 'extra', value: 3, text: '+3 генерации', color: '#8b5cf6', description: 'Три бесплатные генерации' },
-                    { type: 'discount', value: 25, text: 'Скидка 25%', color: '#10b981', description: 'Отличная скидка на покупку' },
-                    { type: 'coins', value: 100, text: '+100 монет', color: '#f59e0b', description: 'Огромный бонус монет' }
-                ],
-                faq: [
-                    {
-                        question: 'Как работает генерация карточек?',
-                        answer: 'Cardify использует искусственный интеллект для создания уникальных карточек товаров. Вы можете загрузить фотографии товара, выбрать стиль оформления и настроить параметры дизайна. ИИ создаст профессиональную карточку за несколько секунд.'
-                    },
-                    {
-                        question: 'Сколько стоит генерация одной карточки?',
-                        answer: 'Генерация одной карточки стоит 10 монет. Редактирование уже созданной карточки стоит 1 монету. Монеты можно приобрести в магазине.'
-                    },
-                    {
-                        question: 'Какие форматы изображений поддерживаются?',
-                        answer: 'Вы можете загружать изображения в форматах JPG, PNG, WebP. Максимальный размер файла - 10MB. Рекомендуется использовать изображения высокого качества для лучшего результата.'
-                    },
-                    {
-                        question: 'Могу ли я редактировать созданные карточки?',
-                        answer: 'Да, после генерации вы можете редактировать карточку: добавлять текст, изменять фон, кадрировать изображение и применять фильтры. Каждое редактирование стоит 1 монету.'
-                    },
-                    {
-                        question: 'Как пополнить баланс монет?',
-                        answer: 'Вы можете приобрести пакеты монет в магазине. Доступны пакеты на 100, 300, 700 и 1500 монет с выгодными скидками. Оплата осуществляется банковской картой или другими доступными способами.'
-                    },
-                    {
-                        question: 'Что такое колесо удачи?',
-                        answer: 'Колесо удачи - это бонусная система. Каждый день вы получаете одну бесплатную попытку крутить колесо и выигрывать призы: дополнительные монеты, скидки на покупку монет или даже золотой билет на 24 часа безлимитных генераций!'
-                    }
-                ],
-                // Конфигурация OAuth (замените на свои данные)
-                oauthConfig: {
-                    google: {
-                        clientId: '452500000664-lirndpc9546pftnqu89rkcflso1j5ah6.apps.googleusercontent.com',
-                        redirectUri: window.location.origin + '/auth/google/callback',
-                        authEndpoint: 'https://accounts.google.com/o/oauth2/v2/auth',
-                        scope: 'profile email'
-                    },
-                    telegram: {
-                        botName: '@cardifyAI_official_bot',
-                        redirectUri: window.location.origin + '/auth/telegram/callback',
-                        authEndpoint: 'https://oauth.telegram.org/auth',
-                        botToken: '8565252148:AAHWG_bXkrV3qywkBHtNx-bMGrZ7WWOS5ak'
-                    }
+    // Основной объект состояния приложения
+    const CardifyApp = {
+        // Состояние
+        state: {
+            user: null,
+            balance: 0,
+            theme: 'dark',
+            currentPage: 'generator',
+            selectedStyle: 'minimal',
+            selectedFormat: '1:1',
+            uploadedImages: [],
+            generationHistory: [],
+            wheelSpunToday: false,
+            editorActive: false,
+            currentEditCost: 0,
+            wheelSpinning: false
+        },
+        
+        // Конфигурация OAuth (ДЕМО режим - работает сразу!)
+        config: {
+            generationCost: 10,
+            editCost: 1,
+            // OAuth конфигурация
+            oauthConfig: {
+                google: {
+                    clientId: '452500000664-lirndpc9546pftnqu89rkcflso1j5ah6.apps.googleusercontent.com',
+                    redirectUri: window.location.origin + '/auth/google/callback',
+                    authEndpoint: 'https://accounts.google.com/o/oauth2/v2/auth',
+                    scope: 'profile email'
+                },
+                telegram: {
+                    botName: '@CardifyAI_official_bot',
+                    botToken: '8565252148:AAHWG_bXkrV3qywkBHtNx-bMGrZ7WWOS5ak'
                 }
             },
+            // Если нет бэкенда - используем демо режим
+            useDemoMode: true,
             
-            // Инициализация
-            init() {
-                this.loadState();
-                this.initUI();
-                this.initEventListeners();
-                this.initCanvas();
-                this.updateUI();
-                this.showNotification('Добро пожаловать в Cardify!', 'success');
-                
-                // Проверяем авторизацию через URL параметры (для OAuth callback)
-                this.checkOAuthCallback();
-            },
+            // Ваши существующие стили и пакеты ОСТАВЬТЕ КАК ЕСТЬ!
+            styles: [
+                { id: 'minimal', name: 'Минималистичный маркетплейс', icon: 'fas fa-minus', prompt: 'minimalistic product photography, clean background, soft shadows, e-commerce style' },
+                { id: 'premium', name: 'Premium / Luxury', icon: 'fas fa-crown', prompt: 'luxury product photography, premium materials, elegant composition, gold accents' },
+                // ... все остальные стили
+            ],
+            packages: [
+                { id: 1, amount: 100, price: 299, oldPrice: null, discount: 0 },
+                // ... все остальные пакеты
+            ],
+            wheelPrizes: [
+                // ... все призы колеса
+            ],
+            faq: [
+                // ... все FAQ
+            ]
+        },
+        
+        // ================= GOOGLE AUTH =================
+        async loginWithGoogle() {
+            // ДЕМО РЕЖИМ - работает сразу!
+            return this.handleGoogleAuthDemo();
+        },
+        
+        handleGoogleAuthDemo() {
+            // ДЕМО: Имитация успешной авторизации
+            const mockUserData = {
+                id: 'google_' + Date.now(),
+                name: 'Демо Пользователь Google',
+                email: 'demo@gmail.com',
+                provider: 'google',
+                avatarUrl: 'https://ui-avatars.com/api/?name=Google+User&background=6366f1&color=fff&size=140'
+            };
             
-            // Проверка OAuth callback
-            checkOAuthCallback() {
-                const urlParams = new URLSearchParams(window.location.search);
-                
-                // Google OAuth callback
-                if (urlParams.has('access_token')) {
-                    const accessToken = urlParams.get('access_token');
-                    const tokenType = urlParams.get('token_type') || 'Bearer';
-                    const expiresIn = urlParams.get('expires_in');
-                    
-                    // Получаем информацию о пользователе
-                    this.handleGoogleAuthCallback(accessToken, tokenType);
-                    
-                    // Очищаем URL от параметров
-                    window.history.replaceState({}, document.title, window.location.pathname);
-                }
-                
-                // Telegram OAuth callback
-                if (urlParams.has('tgAuthResult')) {
-                    const authResult = JSON.parse(urlParams.get('tgAuthResult'));
-                    this.handleTelegramAuthCallback(authResult);
-                    
-                    // Очищаем URL от параметров
-                    window.history.replaceState({}, document.title, window.location.pathname);
-                }
-            },
+            this.state.user = mockUserData;
+            this.state.balance = 150;
+            this.saveState();
             
-            // Обработка Google OAuth callback
-            async handleGoogleAuthCallback(accessToken, tokenType) {
-                try {
-                    // В реальном приложении здесь был бы запрос к вашему бэкенду
-                    // для проверки токена и получения информации о пользователе
-                    
-                    // Имитация успешной авторизации
-                    const mockUserData = {
-                        id: Date.now(),
-                        name: 'Пользователь Google',
-                        email: 'user@gmail.com',
-                        provider: 'google',
-                        avatarUrl: 'https://lh3.googleusercontent.com/a/default-user'
-                    };
-                    
-                    this.state.user = mockUserData;
-                    this.state.balance = 100; // Стартовый баланс
-                    this.saveState();
-                    
-                    this.showNotification('Успешный вход через Google!', 'success');
-                    this.updateUI();
-                    this.initAvatars();
-                    
-                } catch (error) {
-                    console.error('Google OAuth error:', error);
-                    this.showNotification('Ошибка авторизации через Google', 'error');
-                }
-            },
+            this.closeAuthModal();
+            this.showNotification('Демо: Успешный вход через Google!', 'success');
+            this.updateUI();
+            this.initAvatars();
+        },
+        
+        // ================= TELEGRAM AUTH =================
+        async loginWithTelegram() {
+            // ДЕМО РЕЖИМ - работает сразу!
+            return this.handleTelegramAuthDemo();
+        },
+        
+        // Telegram callback функция
+        handleTelegramAuth(telegramUser) {
+            const mockUserData = {
+                id: telegramUser.id || 'telegram_' + Date.now(),
+                name: `${telegramUser.first_name || ''} ${telegramUser.last_name || ''}`.trim() || 'Telegram User',
+                username: telegramUser.username || '',
+                provider: 'telegram',
+                avatarUrl: telegramUser.photo_url || ''
+            };
             
-            // Обработка Telegram OAuth callback
-            handleTelegramAuthCallback(authResult) {
-                try {
-                    // Имитация успешной авторизации через Telegram
-                    const mockUserData = {
-                        id: authResult.id || Date.now(),
-                        name: authResult.first_name || 'Пользователь Telegram',
-                        username: authResult.username || '',
-                        provider: 'telegram',
-                        avatarUrl: authResult.photo_url || ''
-                    };
-                    
-                    this.state.user = mockUserData;
-                    this.state.balance = 100; // Стартовый баланс
-                    this.saveState();
-                    
-                    this.showNotification('Успешный вход через Telegram!', 'success');
-                    this.updateUI();
-                    this.initAvatars();
-                    
-                } catch (error) {
-                    console.error('Telegram OAuth error:', error);
-                    this.showNotification('Ошибка авторизации через Telegram', 'error');
-                }
-            },
+            CardifyApp.state.user = mockUserData;
+            CardifyApp.state.balance = 200;
+            CardifyApp.saveState();
             
-            // Авторизация через Google
-            async loginWithGoogle() {
-                const config = this.config.oauthConfig.google;
-                
-                // В реальном приложении это должно быть настроено через Google Cloud Console
-                const params = {
-                    client_id: config.clientId,
-                    redirect_uri: config.redirectUri,
-                    response_type: 'token',
-                    scope: 'profile email',
-                    include_granted_scopes: 'true',
-                    state: 'google_auth'
-                };
-                
-                const authUrl = `${config.authEndpoint}?${new URLSearchParams(params).toString()}`;
-                
-                // Открываем окно авторизации
-                const authWindow = window.open(authUrl, 'GoogleAuth', 'width=600,height=700');
-                
-                if (!authWindow) {
-                    this.showNotification('Пожалуйста, разрешите всплывающие окна для авторизации', 'warning');
-                    return;
-                }
-                
-                // Имитация для демо (в реальном приложении будет перенаправление)
-                this.showNotification('Для демонстрации используется имитация входа через Google', 'info');
-                
-                setTimeout(() => {
-                    this.handleGoogleAuthDemo();
-                }, 1000);
-            },
+            CardifyApp.closeAuthModal();
+            CardifyApp.showNotification('Успешный вход через Telegram!', 'success');
+            CardifyApp.updateUI();
+            CardifyApp.initAvatars();
+        },
+        
+        handleTelegramAuthDemo() {
+            // ДЕМО: Имитация успешной авторизации
+            const mockUserData = {
+                id: 'telegram_' + Date.now(),
+                name: 'Демо Пользователь Telegram',
+                username: 'demo_telegram_user',
+                provider: 'telegram',
+                avatarUrl: 'https://ui-avatars.com/api/?name=Telegram+User&background=0088cc&color=fff&size=140'
+            };
             
-            // Демо авторизация Google (замените на реальную)
-            handleGoogleAuthDemo() {
-                const mockUserData = {
-                    id: Date.now(),
-                    name: 'Демо Пользователь Google',
-                    email: 'demo@gmail.com',
-                    provider: 'google',
-                    avatarUrl: 'https://ui-avatars.com/api/?name=Google+User&background=6366f1&color=fff&size=140'
-                };
-                
-                this.state.user = mockUserData;
-                this.state.balance = 100;
-                this.saveState();
-                
-                this.closeAuthModal();
-                this.showNotification('Демо: Успешный вход через Google!', 'success');
-                this.updateUI();
-                this.initAvatars();
-            },
+            this.state.user = mockUserData;
+            this.state.balance = 200;
+            this.saveState();
             
-            // Авторизация через Telegram
-            async loginWithTelegram() {
-                const config = this.config.oauthConfig.telegram;
-                
-                // В реальном приложении это должно быть настроено через @BotFather
-                const params = {
-                    bot_id: config.botName,
-                    origin: window.location.origin,
-                    request_access: 'write',
-                    return_to: config.redirectUri
-                };
-                
-                const authUrl = `${config.authEndpoint}?${new URLSearchParams(params).toString()}`;
-                
-                // Открываем окно авторизации
-                const authWindow = window.open(authUrl, 'TelegramAuth', 'width=600,height=700');
-                
-                if (!authWindow) {
-                    this.showNotification('Пожалуйста, разрешите всплывающие окна для авторизации', 'warning');
-                    return;
-                }
-                
-                // Имитация для демо (в реальном приложении будет перенаправление)
-                this.showNotification('Для демонстрации используется имитация входа через Telegram', 'info');
-                
-                setTimeout(() => {
-                    this.handleTelegramAuthDemo();
-                }, 1000);
-            },
+            this.closeAuthModal();
+            this.showNotification('Демо: Успешный вход через Telegram!', 'success');
+            this.updateUI();
+            this.initAvatars();
+        },
+        
+        // ================= ОБЩИЕ МЕТОДЫ AUTH =================
+        loginAsGuest() {
+            const mockUserData = {
+                id: 'guest_' + Date.now(),
+                name: 'Гость',
+                email: '',
+                provider: 'guest',
+                isGuest: true
+            };
             
-            // Демо авторизация Telegram (замените на реальную)
-            handleTelegramAuthDemo() {
-                const mockUserData = {
-                    id: Date.now(),
-                    name: 'Демо Пользователь Telegram',
-                    username: 'demo_telegram_user',
-                    provider: 'telegram',
-                    avatarUrl: 'https://ui-avatars.com/api/?name=Telegram+User&background=0088cc&color=fff&size=140'
-                };
-                
-                this.state.user = mockUserData;
-                this.state.balance = 100;
-                this.saveState();
-                
-                this.closeAuthModal();
-                this.showNotification('Демо: Успешный вход через Telegram!', 'success');
-                this.updateUI();
-                this.initAvatars();
-            },
+            this.state.user = mockUserData;
+            this.state.balance = 50;
+            this.saveState();
             
-            // Вход как гость
-            loginAsGuest() {
-                const mockUserData = {
-                    id: 'guest_' + Date.now(),
-                    name: 'Гость',
-                    email: '',
-                    provider: 'guest',
-                    isGuest: true
-                };
-                
-                this.state.user = mockUserData;
-                this.state.balance = 50; // Меньше баланса для гостя
-                this.saveState();
-                
-                this.closeAuthModal();
-                this.showNotification('Вы вошли как гость. Некоторые функции могут быть ограничены.', 'info');
-                this.updateUI();
-                this.initAvatars();
-            },
-            
-            // Выход из системы
-            logout() {
+            this.closeAuthModal();
+            this.showNotification('Вы вошли как гость. Некоторые функции ограничены.', 'info');
+            this.updateUI();
+            this.initAvatars();
+        },
+        
+        logout() {
+            if (confirm('Вы уверены, что хотите выйти?')) {
                 this.state.user = null;
                 this.state.balance = 0;
                 this.saveState();
@@ -2204,704 +2041,315 @@
                 this.updateUI();
                 this.initAvatars();
                 this.navigateTo('generator');
-            },
+            }
+        },
+        
+        // Инициализация
+        init() {
+            this.loadState();
+            this.initUI();
+            this.initEventListeners();
+            this.initCanvas();
+            this.updateUI();
+            this.showNotification('Добро пожаловать в Cardify!', 'success');
+        },
+        
+        // Загрузка состояния из localStorage
+        loadState() {
+            const savedState = localStorage.getItem('cardify_state');
+            if (savedState) {
+                this.state = { ...this.state, ...JSON.parse(savedState) };
+            }
             
-            // Загрузка состояния из localStorage
-            loadState() {
-                const savedState = localStorage.getItem('cardify_state');
-                if (savedState) {
-                    this.state = { ...this.state, ...JSON.parse(savedState) };
+            const savedTheme = localStorage.getItem('cardify_theme');
+            if (savedTheme) {
+                this.state.theme = savedTheme;
+            }
+            
+            this.applyTheme(this.state.theme);
+        },
+        
+        // Сохранение состояния в localStorage
+        saveState() {
+            localStorage.setItem('cardify_state', JSON.stringify(this.state));
+        },
+        
+        // Инициализация обработчиков событий
+        initEventListeners() {
+            // Навигация
+            document.querySelectorAll('.nav-item').forEach(item => {
+                item.addEventListener('click', (e) => {
+                    const page = e.currentTarget.dataset.page;
+                    this.navigateTo(page);
+                });
+            });
+            
+            // Логотип
+            document.getElementById('logo').addEventListener('click', () => {
+                this.navigateTo('generator');
+            });
+            
+            // Переключение темы
+            document.querySelectorAll('.theme-btn').forEach(btn => {
+                btn.addEventListener('click', (e) => {
+                    const theme = e.currentTarget.dataset.theme;
+                    this.switchTheme(theme);
+                });
+            });
+            
+            // ============ OAuth кнопки ============
+            const googleAuthBtn = document.getElementById('googleAuthBtn');
+            if (googleAuthBtn) {
+                googleAuthBtn.addEventListener('click', () => {
+                    this.loginWithGoogle();
+                });
+            }
+            
+            const telegramAuthBtn = document.getElementById('telegramAuthBtn');
+            if (telegramAuthBtn) {
+                telegramAuthBtn.addEventListener('click', () => {
+                    this.loginWithTelegram();
+                });
+            }
+            
+            const guestLoginBtn = document.getElementById('guestLoginBtn');
+            if (guestLoginBtn) {
+                guestLoginBtn.addEventListener('click', () => {
+                    this.loginAsGuest();
+                });
+            }
+            
+            const logoutBtn = document.getElementById('logoutBtn');
+            if (logoutBtn) {
+                logoutBtn.addEventListener('click', () => {
+                    this.logout();
+                });
+            }
+            
+            // ============ ВАШИ СУЩЕСТВУЮЩИЕ ОБРАБОТЧИКИ ============
+            // ОСТАВЬТЕ ВСЕ ВАШИ СУЩЕСТВУЮЩИЕ ОБРАБОТЧИКИ ЗДЕСЬ!
+            // Они уже есть в вашем коде, не удаляйте их!
+            
+            // Переключение режимов генерации
+            document.querySelectorAll('.mode-btn').forEach(btn => {
+                btn.addEventListener('click', (e) => {
+                    document.querySelectorAll('.mode-btn').forEach(b => b.classList.remove('active'));
+                    e.currentTarget.classList.add('active');
+                    
+                    if (e.currentTarget.dataset.mode === 'random') {
+                        this.generateRandomPrompt();
+                    }
+                });
+            });
+            
+            // Стили карточек
+            document.addEventListener('click', (e) => {
+                if (e.target.closest('.style-card')) {
+                    const styleCard = e.target.closest('.style-card');
+                    const style = styleCard.dataset.style;
+                    
+                    document.querySelectorAll('.style-card').forEach(card => {
+                        card.classList.remove('active');
+                    });
+                    
+                    styleCard.classList.add('active');
+                    this.state.selectedStyle = style;
+                    this.saveState();
                 }
-                
-                // Загрузка темы
-                const savedTheme = localStorage.getItem('cardify_theme');
-                if (savedTheme) {
-                    this.state.theme = savedTheme;
-                }
-                
-                // Применение темы
-                this.applyTheme(this.state.theme);
-            },
+            });
             
-            // Сохранение состояния в localStorage
-            saveState() {
-                localStorage.setItem('cardify_state', JSON.stringify(this.state));
-            },
+            // ... ВСЕ ОСТАЛЬНЫЕ ВАШИ ОБРАБОТЧИКИ ОСТАЮТСЯ КАК ЕСТЬ ...
+            // Не удаляйте ваш существующий код обработчиков!
             
-            // Инициализация пользовательского интерфейса
-            initUI() {
-                // Инициализация стилей карточек
-                this.initStyleSelector();
-                
-                // Инициализация пакетов в магазине
-                this.initPackages();
-                
-                // Инициализация колеса удачи
-                this.initWheel();
-                
-                // Инициализация FAQ
-                this.initFAQ();
-                
-                // Инициализация аватаров
-                this.initAvatars();
-            },
-            
-            // Инициализация аватаров
-            initAvatars() {
-                // Аватар по умолчанию для гостя
-                const defaultAvatar = this.getDefaultAvatar();
-                
-                // Устанавливаем аватар в шапке
-                const userAvatar = document.getElementById('userAvatar');
-                userAvatar.innerHTML = defaultAvatar;
-                
-                // Устанавливаем аватар в профиле
-                const profileAvatar = document.getElementById('profileAvatar');
-                profileAvatar.innerHTML = defaultAvatar;
-            },
-            
-            // Получение аватара по умолчанию
-            getDefaultAvatar() {
-                if (this.state.user) {
-                    if (this.state.user.avatarUrl) {
-                        return `<img src="${this.state.user.avatarUrl}" alt="${this.state.user.name}">`;
+            // Аватар пользователя
+            const userAvatar = document.getElementById('userAvatar');
+            if (userAvatar) {
+                userAvatar.addEventListener('click', () => {
+                    if (!this.state.user) {
+                        this.openAuthModal();
                     } else {
-                        // Генерируем аватар на основе имени
-                        const name = this.state.user.name || 'User';
-                        const bgColor = this.state.user.provider === 'google' ? '6366f1' : 
-                                       this.state.user.provider === 'telegram' ? '0088cc' : '4f46e5';
-                        
-                        return `<img src="https://ui-avatars.com/api/?name=${encodeURIComponent(name)}&background=${bgColor}&color=fff&size=140&font-size=0.5" alt="${name}">`;
+                        this.navigateTo('profile');
                     }
+                });
+            }
+            
+            // Баланс
+            const balanceBtn = document.getElementById('balanceBtn');
+            if (balanceBtn) {
+                balanceBtn.addEventListener('click', () => {
+                    this.navigateTo('shop');
+                });
+            }
+            
+            // Модальные окна
+            const closeAuthModal = document.getElementById('closeAuthModal');
+            if (closeAuthModal) {
+                closeAuthModal.addEventListener('click', () => {
+                    this.closeAuthModal();
+                });
+            }
+            
+            // ... и так далее, все ваши обработчики остаются
+            
+        },
+        
+        // Инициализация аватаров
+        initAvatars() {
+            const defaultAvatar = this.getDefaultAvatar();
+            
+            const userAvatar = document.getElementById('userAvatar');
+            userAvatar.innerHTML = defaultAvatar;
+            
+            const profileAvatar = document.getElementById('profileAvatar');
+            profileAvatar.innerHTML = defaultAvatar;
+        },
+        
+        // Получение аватара по умолчанию
+        getDefaultAvatar() {
+            if (this.state.user) {
+                if (this.state.user.avatarUrl) {
+                    return `<img src="${this.state.user.avatarUrl}" alt="${this.state.user.name}">`;
                 } else {
-                    // Аватар по умолчанию с иконкой человека
-                    return `<i class="fas fa-user" style="font-size: 24px; color: white;"></i>`;
+                    const name = this.state.user.name || 'User';
+                    const bgColor = this.state.user.provider === 'google' ? '6366f1' : 
+                                   this.state.user.provider === 'telegram' ? '0088cc' : '4f46e5';
+                    
+                    return `<img src="https://ui-avatars.com/api/?name=${encodeURIComponent(name)}&background=${bgColor}&color=fff&size=140&font-size=0.5" alt="${name}">`;
                 }
-            },
+            } else {
+                return `<i class="fas fa-user" style="font-size: 24px; color: white;"></i>`;
+            }
+        },
+        
+        // Обновление UI
+        updateUI() {
+            // Баланс
+            const balanceAmount = document.getElementById('balanceAmount');
+            const shopBalance = document.getElementById('shopBalance');
+            const profileBalance = document.getElementById('profileBalance');
             
-            // Инициализация стилей карточек
-            initStyleSelector() {
-                const container = document.getElementById('styleSelector');
-                container.innerHTML = '';
-                
-                this.config.styles.forEach(style => {
-                    const styleCard = document.createElement('div');
-                    styleCard.className = `style-card ${this.state.selectedStyle === style.id ? 'active' : ''}`;
-                    styleCard.dataset.style = style.id;
-                    
-                    styleCard.innerHTML = `
-                        <i class="${style.icon} style-icon"></i>
-                        <div>${style.name}</div>
-                    `;
-                    
-                    container.appendChild(styleCard);
-                });
-            },
+            if (balanceAmount) balanceAmount.textContent = this.state.balance;
+            if (shopBalance) shopBalance.textContent = this.state.balance;
+            if (profileBalance) profileBalance.textContent = this.state.balance;
             
-            // Инициализация пакетов
-            initPackages() {
-                const container = document.getElementById('packagesGrid');
-                if (!container) return;
-                
-                container.innerHTML = '';
-                
-                this.config.packages.forEach(pkg => {
-                    let badgeHTML = '';
-                    if (pkg.badge === 'popular') {
-                        badgeHTML = `<div class="popular-badge">Популярный</div>`;
-                    } else if (pkg.badge === 'best-value') {
-                        badgeHTML = `<div class="best-value-badge">  Самое выгодное</div>`;
-                    }
-                    
-                    const packageCard = document.createElement('div');
-                    packageCard.className = `package-card ${pkg.badge || ''}`;
-                    packageCard.innerHTML = `
-                        ${badgeHTML}
-                        <div class="package-header">
-                            <div class="package-amount">${pkg.amount} монет</div>
-                            <div class="package-price">
-                                ${pkg.price} ₽
-                                ${pkg.oldPrice ? `<span class="package-old-price">${pkg.oldPrice} ₽</span>` : ''}
-                            </div>
-                            ${pkg.discount > 0 ? `<div class="package-discount">-${pkg.discount}%</div>` : ''}
-                        </div>
-                        <button class="buy-btn" data-package="${pkg.id}">
-                            Купить за ${pkg.price} ₽
-                        </button>
-                    `;
-                    
-                    container.appendChild(packageCard);
-                });
-            },
+            // Профиль
+            const profileName = document.getElementById('profileName');
+            const profileEmail = document.getElementById('profileEmail');
             
-            // Инициализация колеса удачи
-            initWheel() {
-                const wheel = document.getElementById('wheel');
-                if (!wheel) return;
-                
-                wheel.innerHTML = '';
-                
-                const sectorAngle = 360 / this.config.wheelPrizes.length;
-                
-                this.config.wheelPrizes.forEach((prize, index) => {
-                    const sector = document.createElement('div');
-                    sector.className = 'wheel-sector';
-                    sector.style.backgroundColor = prize.color;
-                    sector.style.transform = `rotate(${index * sectorAngle}deg)`;
-                    
-                    // Добавляем текст в сектор
-                    const text = document.createElement('div');
-                    text.className = 'wheel-sector-text';
-                    text.textContent = prize.text;
-                    text.style.color = 'white';
-                    text.style.fontWeight = '600';
-                    text.style.textShadow = '1px 1px 2px rgba(0, 0, 0, 0.7)';
-                    
-                    sector.appendChild(text);
-                    wheel.appendChild(sector);
-                });
-                
-                // Обновляем информацию о попытках
-                this.updateWheelInfo();
-            },
+            if (profileName && profileEmail) {
+                if (this.state.user) {
+                    profileName.textContent = this.state.user.name;
+                    profileEmail.textContent = this.state.user.email || this.state.user.username || 'Пользователь';
+                } else {
+                    profileName.textContent = 'Гость';
+                    profileEmail.textContent = 'Войдите в аккаунт';
+                }
+            }
             
-            // Обновление информации о колесе
-            updateWheelInfo() {
-                const spinInfo = document.getElementById('spinInfo');
-                if (!spinInfo) return;
-                
+            // Кнопка выхода
+            const logoutBtn = document.getElementById('logoutBtn');
+            if (logoutBtn) {
+                logoutBtn.style.display = this.state.user ? 'flex' : 'none';
+            }
+            
+            // Обновление состояния кнопки генерации
+            const generateBtn = document.getElementById('generateBtn');
+            if (generateBtn) {
+                generateBtn.disabled = !this.state.user || this.state.balance < this.config.generationCost;
+            }
+            
+            // Обновление состояния кнопки колеса
+            const spinBtn = document.getElementById('spinBtn');
+            if (spinBtn) {
                 const today = new Date().toDateString();
                 const lastSpin = localStorage.getItem('cardify_last_wheel_spin');
                 
-                if (lastSpin === today && this.state.wheelSpunToday) {
-                    spinInfo.textContent = 'Вы уже использовали попытку сегодня';
+                if (!this.state.user) {
+                    spinBtn.disabled = true;
+                    spinBtn.innerHTML = '<i class="fas fa-sign-in-alt"></i> Войдите для участия';
+                } else if (lastSpin === today && this.state.wheelSpunToday) {
+                    spinBtn.disabled = true;
+                    spinBtn.innerHTML = '<i class="fas fa-check"></i> Попытка использована';
                 } else {
-                    spinInfo.textContent = 'Одна бесплатная попытка в день';
-                }
-            },
-            
-            // Инициализация FAQ
-            initFAQ() {
-                const faqList = document.getElementById('faqList');
-                if (!faqList) return;
-                
-                this.config.faq.forEach((faq, index) => {
-                    const faqItem = document.createElement('div');
-                    faqItem.className = 'faq-item';
-                    faqItem.dataset.index = index;
-                    
-                    faqItem.innerHTML = `
-                        <div class="faq-question">
-                            <span>${faq.question}</span>
-                            <i class="fas fa-plus faq-icon"></i>
-                        </div>
-                        <div class="faq-answer">
-                            ${faq.answer}
-                        </div>
-                    `;
-                    
-                    faqList.appendChild(faqItem);
-                });
-            },
-            
-            // Инициализация Canvas
-            initCanvas() {
-                this.canvas = new fabric.Canvas('cardCanvas');
-                this.editorCanvas = new fabric.Canvas('editorCanvas');
-                
-                // Установка размеров canvas
-                this.updateCanvasSize();
-                
-                // Добавляем обработчик изменения размера окна
-                window.addEventListener('resize', () => {
-                    this.updateCanvasSize();
-                });
-            },
-            
-            // Обновление размеров Canvas
-            updateCanvasSize() {
-                const container = document.getElementById('canvas-container');
-                const previewPlaceholder = document.getElementById('previewPlaceholder');
-                
-                if (container && this.canvas) {
-                    const width = container.clientWidth;
-                    const height = container.clientHeight;
-                    
-                    this.canvas.setDimensions({ width, height });
-                    
-                    // Показываем или скрываем placeholder
-                    if (this.canvas.getObjects().length === 0) {
-                        previewPlaceholder.style.display = 'flex';
-                        this.canvas.getElement().style.display = 'none';
-                    } else {
-                        previewPlaceholder.style.display = 'none';
-                        this.canvas.getElement().style.display = 'block';
-                    }
-                }
-            },
-            
-            // Инициализация обработчиков событий
-            initEventListeners() {
-                // Навигация
-                document.querySelectorAll('.nav-item').forEach(item => {
-                    item.addEventListener('click', (e) => {
-                        const page = e.currentTarget.dataset.page;
-                        this.navigateTo(page);
-                    });
-                });
-                
-                // Логотип
-                document.getElementById('logo').addEventListener('click', () => {
-                    this.navigateTo('generator');
-                });
-                
-                // Переключение темы
-                document.querySelectorAll('.theme-btn').forEach(btn => {
-                    btn.addEventListener('click', (e) => {
-                        const theme = e.currentTarget.dataset.theme;
-                        this.switchTheme(theme);
-                    });
-                });
-                
-                // OAuth кнопки
-                const googleAuthBtn = document.getElementById('googleAuthBtn');
-                if (googleAuthBtn) {
-                    googleAuthBtn.addEventListener('click', () => {
-                        this.loginWithGoogle();
-                    });
-                }
-                
-                const telegramAuthBtn = document.getElementById('telegramAuthBtn');
-                if (telegramAuthBtn) {
-                    telegramAuthBtn.addEventListener('click', () => {
-                        this.loginWithTelegram();
-                    });
-                }
-                
-                const guestLoginBtn = document.getElementById('guestLoginBtn');
-                if (guestLoginBtn) {
-                    guestLoginBtn.addEventListener('click', () => {
-                        this.loginAsGuest();
-                    });
-                }
-                
-                const logoutBtn = document.getElementById('logoutBtn');
-                if (logoutBtn) {
-                    logoutBtn.addEventListener('click', () => {
-                        this.logout();
-                    });
-                }
-                
-                // Переключение режимов генерации
-                document.querySelectorAll('.mode-btn').forEach(btn => {
-                    btn.addEventListener('click', (e) => {
-                        document.querySelectorAll('.mode-btn').forEach(b => b.classList.remove('active'));
-                        e.currentTarget.classList.add('active');
-                        
-                        // Если выбран случайный режим, генерируем случайный промт
-                        if (e.currentTarget.dataset.mode === 'random') {
-                            this.generateRandomPrompt();
-                        }
-                    });
-                });
-                
-                // Стили карточек
-                document.addEventListener('click', (e) => {
-                    if (e.target.closest('.style-card')) {
-                        const styleCard = e.target.closest('.style-card');
-                        const style = styleCard.dataset.style;
-                        
-                        document.querySelectorAll('.style-card').forEach(card => {
-                            card.classList.remove('active');
-                        });
-                        
-                        styleCard.classList.add('active');
-                        this.state.selectedStyle = style;
-                        this.saveState();
-                    }
-                });
-                
-                // Форматы карточек
-                document.querySelectorAll('.format-btn').forEach(btn => {
-                    btn.addEventListener('click', (e) => {
-                        document.querySelectorAll('.format-btn').forEach(b => b.classList.remove('active'));
-                        e.currentTarget.classList.add('active');
-                        this.state.selectedFormat = e.currentTarget.dataset.ratio;
-                        this.updateCanvasSize();
-                    });
-                });
-                
-                // Слайдеры
-                const brightnessSlider = document.getElementById('brightnessSlider');
-                const contrastSlider = document.getElementById('contrastSlider');
-                const brightnessValue = document.getElementById('brightnessValue');
-                const contrastValue = document.getElementById('contrastValue');
-                
-                if (brightnessSlider && brightnessValue) {
-                    brightnessSlider.addEventListener('input', (e) => {
-                        brightnessValue.textContent = e.target.value;
-                        this.applyImageFilters();
-                    });
-                }
-                
-                if (contrastSlider && contrastValue) {
-                    contrastSlider.addEventListener('input', (e) => {
-                        contrastValue.textContent = e.target.value;
-                        this.applyImageFilters();
-                    });
-                }
-                
-                // Загрузка файлов
-                const uploadArea = document.getElementById('uploadArea');
-                const fileInput = document.getElementById('fileInput');
-                
-                if (uploadArea && fileInput) {
-                    uploadArea.addEventListener('click', () => {
-                        fileInput.click();
-                    });
-                    
-                    fileInput.addEventListener('change', (e) => {
-                        this.handleFileUpload(e.target.files);
-                    });
-                    
-                    // Drag & Drop
-                    uploadArea.addEventListener('dragover', (e) => {
-                        e.preventDefault();
-                        uploadArea.classList.add('dragover');
-                    });
-                    
-                    uploadArea.addEventListener('dragleave', () => {
-                        uploadArea.classList.remove('dragover');
-                    });
-                    
-                    uploadArea.addEventListener('drop', (e) => {
-                        e.preventDefault();
-                        uploadArea.classList.remove('dragover');
-                        
-                        if (e.dataTransfer.files.length) {
-                            this.handleFileUpload(e.dataTransfer.files);
-                        }
-                    });
-                }
-                
-                // Кнопка генерации случайного промта
-                const generateRandomPromptBtn = document.getElementById('generateRandomPrompt');
-                if (generateRandomPromptBtn) {
-                    generateRandomPromptBtn.addEventListener('click', () => {
-                        this.generateRandomPrompt();
-                    });
-                }
-                
-                // Кнопка очистки промта
-                const clearPromptBtn = document.getElementById('clearPrompt');
-                if (clearPromptBtn) {
-                    clearPromptBtn.addEventListener('click', () => {
-                        document.getElementById('promptInput').value = '';
-                    });
-                }
-                
-                // Кнопка генерации карточки
-                const generateBtn = document.getElementById('generateBtn');
-                if (generateBtn) {
-                    generateBtn.addEventListener('click', () => {
-                        this.generateCard();
-                    });
-                }
-                
-                // Инструменты редактора
-                const removeBgBtn = document.getElementById('removeBgBtn');
-                if (removeBgBtn) {
-                    removeBgBtn.addEventListener('click', () => {
-                        this.startBackgroundRemoval();
-                    });
-                }
-                
-                const cropBtn = document.getElementById('cropBtn');
-                if (cropBtn) {
-                    cropBtn.addEventListener('click', () => {
-                        this.startCrop();
-                    });
-                }
-                
-                const addTextBtn = document.getElementById('addTextBtn');
-                if (addTextBtn) {
-                    addTextBtn.addEventListener('click', () => {
-                        this.addTextToCanvas();
-                    });
-                }
-                
-                const enhanceBtn = document.getElementById('enhanceBtn');
-                if (enhanceBtn) {
-                    enhanceBtn.addEventListener('click', () => {
-                        this.enhanceImage();
-                    });
-                }
-                
-                // Магазин
-                document.addEventListener('click', (e) => {
-                    if (e.target.closest('.buy-btn')) {
-                        const btn = e.target.closest('.buy-btn');
-                        const packageId = parseInt(btn.dataset.package);
-                        this.buyPackage(packageId);
-                    }
-                });
-                
-                // Колесо удачи
-                const spinBtn = document.getElementById('spinBtn');
-                if (spinBtn) {
-                    spinBtn.addEventListener('click', () => {
-                        this.spinWheel();
-                    });
-                }
-                
-                // Аватар пользователя
-                const userAvatar = document.getElementById('userAvatar');
-                if (userAvatar) {
-                    userAvatar.addEventListener('click', () => {
-                        if (!this.state.user) {
-                            this.openAuthModal();
-                        } else {
-                            this.navigateTo('profile');
-                        }
-                    });
-                }
-                
-                // Баланс
-                const balanceBtn = document.getElementById('balanceBtn');
-                if (balanceBtn) {
-                    balanceBtn.addEventListener('click', () => {
-                        this.navigateTo('shop');
-                    });
-                }
-                
-                // Поддержка
-                const supportBtn = document.getElementById('supportBtn');
-                if (supportBtn) {
-                    supportBtn.addEventListener('click', () => {
-                        this.openSupportModal();
-                    });
-                }
-                
-                // FAQ
-                document.addEventListener('click', (e) => {
-                    if (e.target.closest('.faq-item')) {
-                        const faqItem = e.target.closest('.faq-item');
-                        faqItem.classList.toggle('active');
-                    }
-                });
-                
-                // Модальные окна
-                const closeAuthModal = document.getElementById('closeAuthModal');
-                if (closeAuthModal) {
-                    closeAuthModal.addEventListener('click', () => {
-                        this.closeAuthModal();
-                    });
-                }
-                
-                const closeSupportModal = document.getElementById('closeSupportModal');
-                if (closeSupportModal) {
-                    closeSupportModal.addEventListener('click', () => {
-                        this.closeSupportModal();
-                    });
-                }
-                
-                const closeEditorModal = document.getElementById('closeEditorModal');
-                if (closeEditorModal) {
-                    closeEditorModal.addEventListener('click', () => {
-                        this.closeEditorModal();
-                    });
-                }
-                
-                const cancelEditBtn = document.getElementById('cancelEditBtn');
-                if (cancelEditBtn) {
-                    cancelEditBtn.addEventListener('click', () => {
-                        this.closeEditorModal();
-                    });
-                }
-                
-                const saveEditBtn = document.getElementById('saveEditBtn');
-                if (saveEditBtn) {
-                    saveEditBtn.addEventListener('click', () => {
-                        this.saveEdit();
-                    });
-                }
-                
-                const contactSupportBtn = document.getElementById('contactSupportBtn');
-                if (contactSupportBtn) {
-                    contactSupportBtn.addEventListener('click', () => {
-                        this.contactSupport();
-                    });
-                }
-                
-                // Закрытие модальных окон по клику вне окна
-                document.querySelectorAll('.modal').forEach(modal => {
-                    modal.addEventListener('click', (e) => {
-                        if (e.target === modal) {
-                            if (modal.id === 'authModal') this.closeAuthModal();
-                            if (modal.id === 'supportModal') this.closeSupportModal();
-                            if (modal.id === 'editorModal') this.closeEditorModal();
-                        }
-                    });
-                });
-            },
-            
-            // Навигация по страницам
-            navigateTo(page) {
-                // Обновляем активную страницу
-                document.querySelectorAll('.page').forEach(p => {
-                    p.classList.remove('active');
-                });
-                
-                document.querySelectorAll('.nav-item').forEach(item => {
-                    item.classList.remove('active');
-                    if (item.dataset.page === page) {
-                        item.classList.add('active');
-                    }
-                });
-                
-                document.getElementById(page).classList.add('active');
-                this.state.currentPage = page;
-                this.saveState();
-                
-                // Обновляем UI для конкретной страницы
-                this.updateUI();
-                
-                // Обновляем информацию о колесе при переходе в магазин
-                if (page === 'shop') {
-                    this.updateWheelInfo();
-                }
-            },
-            
-            // Переключение темы
-            switchTheme(theme) {
-                // Обновляем активную кнопку темы
-                document.querySelectorAll('.theme-btn').forEach(btn => {
-                    btn.classList.remove('active');
-                    if (btn.dataset.theme === theme) {
-                        btn.classList.add('active');
-                    }
-                });
-                
-                // Применяем тему
-                this.applyTheme(theme);
-                
-                // Сохраняем тему
-                this.state.theme = theme;
-                localStorage.setItem('cardify_theme', theme);
-                this.saveState();
-            },
-            
-            // Применение темы
-            applyTheme(theme) {
-                document.body.classList.remove('light-theme');
-                
-                if (theme === 'light') {
-                    document.body.classList.add('light-theme');
-                } else if (theme === 'system') {
-                    const prefersLight = window.matchMedia('(prefers-color-scheme: light)').matches;
-                    if (prefersLight) {
-                        document.body.classList.add('light-theme');
-                    }
-                }
-            },
-            
-            // Открытие модального окна авторизации
-            openAuthModal() {
-                document.getElementById('authModal').classList.add('active');
-            },
-            
-            // Закрытие модального окна авторизации
-            closeAuthModal() {
-                document.getElementById('authModal').classList.remove('active');
-            },
-            
-            // Остальные методы остаются такими же как в предыдущем коде...
-            // (handleFileUpload, generateCard, spinWheel и т.д.)
-            // Для экономии места опускаю их, так как они не изменились
-            
-            // Показ уведомления
-            showNotification(message, type = 'info') {
-                const notification = document.getElementById('notification');
-                const notificationMessage = document.getElementById('notificationMessage');
-                
-                if (!notification || !notificationMessage) return;
-                
-                notificationMessage.textContent = message;
-                notification.className = 'notification';
-                notification.classList.add(type);
-                
-                // Показываем уведомление
-                setTimeout(() => {
-                    notification.classList.add('show');
-                }, 10);
-                
-                // Скрываем через 5 секунд
-                setTimeout(() => {
-                    notification.classList.remove('show');
-                }, 5000);
-            },
-            
-            // Обновление UI
-            updateUI() {
-                // Баланс
-                const balanceAmount = document.getElementById('balanceAmount');
-                const shopBalance = document.getElementById('shopBalance');
-                const profileBalance = document.getElementById('profileBalance');
-                
-                if (balanceAmount) balanceAmount.textContent = this.state.balance;
-                if (shopBalance) shopBalance.textContent = this.state.balance;
-                if (profileBalance) profileBalance.textContent = this.state.balance;
-                
-                // Профиль
-                const profileName = document.getElementById('profileName');
-                const profileEmail = document.getElementById('profileEmail');
-                
-                if (profileName && profileEmail) {
-                    if (this.state.user) {
-                        profileName.textContent = this.state.user.name;
-                        profileEmail.textContent = this.state.user.email || this.state.user.username || 'Пользователь';
-                    } else {
-                        profileName.textContent = 'Гость';
-                        profileEmail.textContent = 'Войдите в аккаунт';
-                    }
-                }
-                
-                // Кнопка выхода
-                const logoutBtn = document.getElementById('logoutBtn');
-                if (logoutBtn) {
-                    logoutBtn.style.display = this.state.user ? 'flex' : 'none';
-                }
-                
-                // Обновление состояния кнопки генерации
-                const generateBtn = document.getElementById('generateBtn');
-                if (generateBtn) {
-                    generateBtn.disabled = !this.state.user || this.state.balance < this.config.generationCost;
-                }
-                
-                // Обновление состояния кнопки колеса
-                const spinBtn = document.getElementById('spinBtn');
-                if (spinBtn) {
-                    const today = new Date().toDateString();
-                    const lastSpin = localStorage.getItem('cardify_last_wheel_spin');
-                    
-                    if (!this.state.user) {
-                        spinBtn.disabled = true;
-                        spinBtn.innerHTML = '<i class="fas fa-sign-in-alt"></i> Войдите для участия';
-                    } else if (lastSpin === today && this.state.wheelSpunToday) {
-                        spinBtn.disabled = true;
-                        spinBtn.innerHTML = '<i class="fas fa-check"></i> Попытка использована';
-                    } else {
-                        spinBtn.disabled = false;
-                        spinBtn.innerHTML = '<i class="fas fa-redo"></i> Крутить колесо';
-                    }
+                    spinBtn.disabled = false;
+                    spinBtn.innerHTML = '<i class="fas fa-redo"></i> Крутить колесо';
                 }
             }
-        };
+        },
+        
+        // Показ уведомления
+        showNotification(message, type = 'info') {
+            const notification = document.getElementById('notification');
+            const notificationMessage = document.getElementById('notificationMessage');
+            
+            if (!notification || !notificationMessage) return;
+            
+            notificationMessage.textContent = message;
+            notification.className = 'notification';
+            notification.classList.add(type);
+            
+            setTimeout(() => {
+                notification.classList.add('show');
+            }, 10);
+            
+            setTimeout(() => {
+                notification.classList.remove('show');
+            }, 5000);
+        },
+        
+        // Открытие модального окна авторизации
+        openAuthModal() {
+            document.getElementById('authModal').classList.add('active');
+        },
+        
+        // Закрытие модального окна авторизации
+        closeAuthModal() {
+            document.getElementById('authModal').classList.remove('active');
+        },
+        
+        // ================= ВАШИ СУЩЕСТВУЮЩИЕ МЕТОДЫ =================
+        // ВАЖНО: СКОПИРУЙТЕ ВСЕ ВАШИ МЕТОДЫ СЮДА!
+        // Например:
+        initUI() {
+            // ваш существующий код initUI()
+        },
+        
+        navigateTo(page) {
+            // ваш существующий код navigateTo()
+        },
+        
+        switchTheme(theme) {
+            // ваш существующий код switchTheme()
+        },
+        
+        applyTheme(theme) {
+            // ваш существующий код applyTheme()
+        },
+        
+        handleFileUpload(files) {
+            // ваш существующий код handleFileUpload()
+        },
+        
+        generateCard() {
+            // ваш существующий код generateCard()
+        },
+        
+        spinWheel() {
+            // ваш существующий код spinWheel()
+        },
+        
+        // ... и ВСЕ остальные ваши методы!
+        // Не удаляйте их, просто добавьте новые методы выше
+    };
 
-        // Инициализация приложения после загрузки страницы
-        document.addEventListener('DOMContentLoaded', () => {
-            CardifyApp.init();
-        });
+    // Сделаем функцию глобальной для Telegram
+    window.CardifyApp = CardifyApp;
+    window.handleTelegramAuth = (user) => CardifyApp.handleTelegramAuth(user);
+
+    // Инициализация приложения
+    document.addEventListener('DOMContentLoaded', () => {
+        CardifyApp.init();
+    });
     </script>
 </body>
 </html>
